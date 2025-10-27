@@ -254,7 +254,7 @@ def run_ekf(measurements, dt=0.04):
         
         # --- UPDATE STEP ---
         # Get the position [x, y] from the current measurement
-        z = measurements[i, 0:2, 0] 
+        z = measurements[i, 0:2, :]  # This correctly creates a (2, 1) column vector
         
         ekf.update(z)
         
