@@ -14,14 +14,17 @@ import matplotlib.cm as cm
 # Task 4, Subtask 2 (Visualization of forecasted points)
 
 # Add Background Image 
-meters_per_pixel = 0.097752   # use this variable for converting positions to pixels
+meters_per_pixel = 0.097752    # use this variable for converting positions to pixels
 def animate_trajectory_with_controls(
-    raw_meas_list,            # List of raw measurements for each car
-    filtered_meas_list,       # List of filtered (Kalman) measurements for each car
-    imgpath,                  # Background image path
-    forecast_data_list=None,  # Optional list of forecasted trajectory data
-    ade_per_track=None        # Optional ADE values per track for plotting
+    raw_meas_list,          # List of raw measurements for each car
+    filtered_meas_list,     # List of filtered (Kalman) measurements for each car
+    imgpath,                # Background image path
+    forecast_data_list=None,# Optional list of forecasted trajectory data
+    ade_per_track=None      # Optional ADE values per track for plotting
 ):
+    # --- ADDED THIS LINE (from our previous fix) ---
+    max_frames = max(len(track) for track in raw_meas_list)
+
     # Initialize main figure and background
     fig, ax = plt.subplots(figsize=(10, 8))
     image = plt.imread(imgpath)
@@ -71,10 +74,10 @@ def animate_trajectory_with_controls(
         ax_ade.legend(loc='upper right')
 
     # ============ Controls and State ============
-    playing = [True]            # Animation play/pause state
-    speed = [1]                 # Playback speed multiplier
-    current_frame = [0]        # Current time step
-    max_len = max(len(m) for m in raw_meas_list)
+    playing = [True]        # Animation play/pause state
+    speed = [1]             # Playback speed multiplier
+    current_frame = [0]     # Current time step
+    max_len = max(len(m) for m in raw_meas_list) # This is the correct max_len
 
     # Frame slider
     ax_slider = fig.add_axes([0.15, 0.01, 0.55, 0.025])
@@ -229,6 +232,12 @@ def animate_trajectory_with_controls(
             update_frame(i)
         return raw_dots + filt_dots + forecast_lines + raw_paths + filt_paths + ade_lines + [ade_avg_line]
 
-    ani = FuncAnimation(fig, anim_func, interval=100)
+    ### --- EDITED LINE 1 --- ###
+    # We pass 'frames=max_len' and 'cache_frame_data=False'
+    ani = FuncAnimation(fig, anim_func, frames=max_len, interval=100, cache_frame_data=False)
+    
     plt.tight_layout()
-    plt.show()
+    
+    ### --- EDITED LINE 2 --- ###
+    # We return the 'ani' object so it doesn't get deleted
+    return ani
