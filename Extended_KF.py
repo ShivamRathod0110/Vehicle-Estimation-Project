@@ -217,7 +217,55 @@ def forecast_ekf(f_dt, meas, n):
     forecast_array = forecast_array.reshape(forecast_array.shape[0], forecast_array.shape[1], 4, 1)
     return forecast_array
 
+def run_ekf(measurements, dt=0.04):
+    """
+    Runs the Extended Kalman Filter for a single track.
+    
+    Args:
+        measurements: A (N, 4, 1) numpy array of measurements [x, y, v, h]
+        dt: Time step
+    
+    Returns:
+        A (N, 4, 1) numpy array of filtered states.
+    """
+    
+    # 1. Initialize the filter
+    x_init = measurements[0]  # Initial state [x, y, v, h]
+    ekf = EKF(x=x_init, dt=dt)
+    
+    filtered_states = [x_init]
+    prev_h = x_init[3, 0] # Get initial heading
+    
+    # 2. Loop through all measurements (starting from the second one)
+    for i in range(1, len(measurements)):
+        
+        # --- PREDICTION STEP ---
+        # We need to calculate the control inputs (velocity, heading_rate)
+        
+        # Get velocity from the *current* measurement (as control input)
+        v = measurements[i, 2, 0] 
+        
+        # Calculate heading_rate from the change in heading
+        curr_h = measurements[i, 3, 0]
+        dh = (curr_h - prev_h + np.pi) % (2 * np.pi) - np.pi # Handle angle wrap
+        heading_rate = dh / dt
+        
+        ekf.predict(velocity=v, heading_rate=heading_rate)
+        
+        # --- UPDATE STEP ---
+        # Get the position [x, y] from the current measurement
+        z = measurements[i, 0:2, 0] 
+        
+        ekf.update(z)
+        
+        # Store the corrected state
+        filtered_states.append(ekf.x.copy())
+        
+        # Update previous heading for the next loop
+        prev_h = curr_h
 
+    # 3. Return all states as a numpy array
+    return np.array(filtered_states).reshape(len(measurements), 4, 1)
 
 
 
