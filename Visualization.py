@@ -111,8 +111,8 @@ def animate_trajectory_with_controls(
             filt_y = -filt[idx, 1] / meters_per_pixel
 
             # Update markers
-            raw_dots[car_id].set_data(raw_x, raw_y)
-            filt_dots[car_id].set_data(filt_x, filt_y)
+            raw_dots[car_id].set_data([raw_x], [raw_y])
+            filt_dots[car_id].set_data([filt_x], [filt_y])
 
             # Update trajectory paths
             raw_paths[car_id].set_data(raw[:idx+1, 0] / meters_per_pixel, -raw[:idx+1, 1] / meters_per_pixel)
